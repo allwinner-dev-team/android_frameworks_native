@@ -114,6 +114,10 @@ public:
     // bufferCount sets the minimum number of undequeued buffers for this queue
     BufferQueue(  bool allowSynchronousMode = true, int bufferCount = MIN_UNDEQUEUED_BUFFERS);
     virtual ~BufferQueue();
+    
+    virtual bool     IsHardwareRenderSupport();
+    virtual int      setParameter(uint32_t cmd,uint32_t value);
+    virtual uint32_t getParameter(uint32_t cmd);
 
     virtual int query(int what, int* value);
 

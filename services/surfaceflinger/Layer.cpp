@@ -176,6 +176,13 @@ wp<IBinder> Layer::getSurfaceTextureBinder() const
     return mSurfaceTexture->getBufferQueue()->asBinder();
 }
 
+void Layer::setTextureInfo(int w,int h,int format)
+{
+    texture_srcw 	= w;
+    texture_srch 	= h;
+    texture_format 	= format;
+    mCurrentCrop    = Rect(w,h);
+}
 status_t Layer::setBuffers( uint32_t w, uint32_t h,
                             PixelFormat format, uint32_t flags)
 {
@@ -328,6 +335,8 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
     } else {
         hwcl->handle = buffer->handle;
     }
+    hwcl->format = texture_format;
+    ALOGV("hwcl->format = %d\n",texture_format);
 }
 
 void Layer::onDraw(const Region& clip) const
@@ -539,7 +548,6 @@ bool Layer::onPreComposition() {
 void Layer::lockPageFlip(bool& recomputeVisibleRegions)
 {
     ATRACE_CALL();
-
     if (mQueuedFrames > 0) {
 
         // if we've already called updateTexImage() without going through
@@ -551,7 +559,6 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
             mPostedDirtyRegion.clear();
             return;
         }
-
         // Capture the old state of the layer for comparisons later
         const bool oldOpacity = isOpaque();
         sp<GraphicBuffer> oldActiveBuffer = mActiveBuffer;
@@ -679,7 +686,6 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
             mCurrentScalingMode = scalingMode;
             mFlinger->invalidateHwcGeometry();
         }
-
         if (oldActiveBuffer != NULL) {
             uint32_t bufWidth  = mActiveBuffer->getWidth();
             uint32_t bufHeight = mActiveBuffer->getHeight();
@@ -791,6 +797,15 @@ uint32_t Layer::getEffectiveUsage(uint32_t usage) const
     return usage;
 }
 
+int Layer::setDisplayParameter(uint32_t cmd,uint32_t  value)
+{
+    return mFlinger->setDisplayParameter(cmd,value);
+}
+
+uint32_t Layer::getDisplayParameter(uint32_t cmd)
+{
+    return mFlinger->getDisplayParameter(cmd);
+}
 uint32_t Layer::getTransformHint() const {
     uint32_t orientation = 0;
     if (!mFlinger->mDebugDisableTransformHint) {

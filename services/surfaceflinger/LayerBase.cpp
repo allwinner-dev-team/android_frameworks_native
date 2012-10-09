@@ -421,6 +421,7 @@ void LayerBase::drawWithOpenGL(const Region& clip) const
     if (!s.active.crop.isEmpty()) {
         crop = s.active.crop;
     }
+
     GLfloat left = GLfloat(crop.left) / GLfloat(s.active.w);
     GLfloat top = GLfloat(crop.top) / GLfloat(s.active.h);
     GLfloat right = GLfloat(crop.right) / GLfloat(s.active.w);
@@ -449,7 +450,6 @@ void LayerBase::drawWithOpenGL(const Region& clip) const
     glVertexPointer(2, GL_FLOAT, 0, mVertices);
     glTexCoordPointer(2, GL_FLOAT, 0, texCoords);
     glDrawArrays(GL_TRIANGLE_FAN, 0, mNumVertices);
-
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisable(GL_BLEND);
 }

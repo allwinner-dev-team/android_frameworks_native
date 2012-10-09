@@ -27,6 +27,8 @@
 
 #include <gui/ISurfaceTexture.h>
 
+#include <hardware/hwcomposer.h>
+
 namespace android {
 // ----------------------------------------------------------------------------
 
@@ -44,6 +46,8 @@ enum {
 #endif
     CONNECT,
     DISCONNECT,
+    SET_PARAMETER,
+    GET_PARAMETER,
 };
 
 
@@ -201,6 +205,56 @@ public:
         result = reply.readInt32();
         return result;
     }
+    
+    virtual int setParameter(uint32_t cmd,uint32_t value) 
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(ISurfaceTexture::getInterfaceDescriptor());
+        data.writeInt32(cmd);
+        if(cmd == HWC_LAYER_SETINITPARA)
+        {
+        	layerinitpara_t  *layer_info = (layerinitpara_t  *)value;
+        	ALOGD("layer_info.w = %d\n",layer_info->w);
+        	ALOGD("layer_info.h = %d\n",layer_info->h);
+        	ALOGD("layer_info.format = %d\n",layer_info->format);
+        	ALOGD("layer_info.screenid = %d\n",layer_info->screenid);
+	        	
+        	data.write((void *)value,sizeof(layerinitpara_t));
+        }
+        else if(cmd == HWC_LAYER_SETFRAMEPARA)
+        {
+        	data.write((void *)value,sizeof(libhwclayerpara_t));
+        }
+        else if(cmd == HWC_LAYER_SET3DMODE)
+        {
+        	data.write((void *)value,sizeof(video3Dinfo_t));
+        }
+        else
+        {
+        	data.writeInt32(value);
+    	}
+        status_t result = remote()->transact(SET_PARAMETER, data, &reply);
+        if (result != NO_ERROR) 
+        {
+            return result;
+        }
+        result = reply.readInt32();
+        return result;
+    }
+
+    virtual uint32_t getParameter(uint32_t cmd) 
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(ISurfaceTexture::getInterfaceDescriptor());
+        data.writeInt32(cmd);
+        status_t result =remote()->transact(GET_PARAMETER, data, &reply);
+        if (result != NO_ERROR) 
+        {
+            return result;
+        }
+        result = reply.readInt32();
+        return result;
+    }
 };
 
 IMPLEMENT_META_INTERFACE(SurfaceTexture, "android.gui.SurfaceTexture");
@@ -310,6 +364,52 @@ status_t BnSurfaceTexture::onTransact(
             int api = data.readInt32();
             status_t res = disconnect(api);
             reply->writeInt32(res);
+            return NO_ERROR;
+        } break;
+	case SET_PARAMETER: {
+            CHECK_INTERFACE(ISurfaceTexture, data, reply);
+            uint32_t cmd    = (uint32_t)data.readInt32();
+            uint32_t value;
+           	if(cmd == HWC_LAYER_SETINITPARA)
+	        {
+	        	layerinitpara_t  layer_info;
+	        	
+	        	data.read((void *)&layer_info,sizeof(layerinitpara_t));
+	        	
+	        	value = (uint32_t)&layer_info;
+	        	
+	        	ALOGD("layer_info.w = %d\n",layer_info.w);
+	        	ALOGD("layer_info.h = %d\n",layer_info.h);
+	        	ALOGD("layer_info.format = %d\n",layer_info.format);
+	        	ALOGD("layer_info.screenid = %d\n",layer_info.screenid);
+	        }
+	        else if(cmd == HWC_LAYER_SETFRAMEPARA)
+	        {
+	        	libhwclayerpara_t  frame_info;
+	        	
+	        	data.read((void *)&frame_info,sizeof(libhwclayerpara_t));
+	        	
+	        	value = (uint32_t)&frame_info;
+	        }
+	        else if(cmd == HWC_LAYER_SET3DMODE)
+	        {
+	        	video3Dinfo_t _3d_info;
+	        	data.read((void *)&_3d_info, sizeof(video3Dinfo_t));
+	        	value = (uint32_t)&_3d_info;
+	        }
+	        else
+	        {
+	        	value    = (uint32_t)data.readInt32();
+	        }
+            int res = setParameter(cmd,value);
+            reply->writeInt32(res);
+            return NO_ERROR;
+        } break;
+        case GET_PARAMETER: {
+            CHECK_INTERFACE(ISurfaceTexture, data, reply);
+            uint32_t cmd    = (uint32_t)data.readInt32();
+            uint32_t res = getParameter(cmd);
+            reply->writeInt32((int32_t)res);
             return NO_ERROR;
         } break;
     }

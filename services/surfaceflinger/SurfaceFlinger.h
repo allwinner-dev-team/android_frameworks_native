@@ -181,6 +181,9 @@ public:
                                                             int orientation, uint32_t flags);
     virtual bool                        authenticateSurfaceTexture(const sp<ISurfaceTexture>& surface) const;
     virtual sp<IDisplayEventConnection> createDisplayEventConnection();
+    
+    virtual int                         setDisplayProp(int cmd,int param0,int param1,int param2);
+    virtual int                         getDisplayProp(int cmd,int param0,int param1);
 
     virtual status_t captureScreen(DisplayID dpy,
             sp<IMemoryHeap>* heap,
@@ -224,10 +227,12 @@ public:
     sp<Layer> getLayer(const sp<ISurface>& sur) const;
 
     GLuint getProtectedTexName() const { return mProtectedTexName; }
+    
+    int         setDisplayParameter(uint32_t cmd,uint32_t  value);
+    uint32_t    getDisplayParameter(uint32_t cmd);
 
     // 0: surface doesn't need dithering, 1: use if necessary, 2: use permanently
     inline int  getUseDithering() const { return mUseDithering; }
-
 
     class MessageDestroyGLTexture : public MessageBase {
         GLuint texture;

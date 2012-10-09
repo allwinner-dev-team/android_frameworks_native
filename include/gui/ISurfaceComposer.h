@@ -131,6 +131,9 @@ public:
 
     /* triggers screen on animation */
     virtual status_t turnElectronBeamOn(int32_t mode) = 0;
+    
+    virtual int      setDisplayProp(int cmd,int param0,int param1,int param2) = 0;
+    virtual int      getDisplayProp(int cmd,int param0,int param1) = 0;
 
     /* verify that an ISurfaceTexture was created by SurfaceFlinger.
      */
@@ -160,6 +163,8 @@ public:
         TURN_ELECTRON_BEAM_ON,
         AUTHENTICATE_SURFACE,
         CREATE_DISPLAY_EVENT_CONNECTION,
+	SET_DISPLAYPROP,
+	GET_DISPLAYPROP,
     };
 
     virtual status_t    onTransact( uint32_t code,
